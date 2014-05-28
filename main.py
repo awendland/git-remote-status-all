@@ -8,7 +8,7 @@
 #
 # Influenced by http://stackoverflow.com/questions/5143795/how-can-i-check-in-a-bash-script-if-my-local-git-repo-has-changes
 
-from subprocess import call, check_output
+from subprocess import call, check_output, CalledProcessError, STDOUT
 import os
 import sys
 
@@ -53,33 +53,45 @@ def execute():
         # Read git repo paths from repos file
         repo_paths = [line.strip() for line in open(path)]
         # Print number of repos
-        print(str(len(repo_paths)) + " git repositories")
-        print("-" * 20)
+        print(" " + str(len(repo_paths)) + " git repositories")
+        print(" " + "-" * 40)
         # Get maxlen of repo paths
         max_repo_len = get_max_path_len(repo_paths) + 2
         # Loop over git repos
         for repo in repo_paths:
-            # Change working directory to git repo
-            os.chdir(repo)
             # Print repo name
-            printn(pretty_repo(repo).ljust(max_repo_len, " "))
-            # Check if git repo
-            if callnull(["git", "status"]) == 0:
-                # Run git fetch to update remote status
-                callnull(["git", "fetch"])
-                # Get current branch
-                cur_branch = check_output(["git","rev-parse","--abbrev-ref","HEAD"])
-                # Check if there are commits to be pushed
-                if int(call(["git","rev-list","HEAD...origin/" + cur_branch,"--ignore-submodules","--count"], stderr=devnull)) > 0:
-                    printn("[ " + colr("NEEDS-SYNC", c.W) + " ]")
-                # No commits to be pushed
+            printn(" " + pretty_repo(repo).ljust(max_repo_len, " "))
+            if os.path.isdir(repo):
+                # Change working directory to git repo
+                os.chdir(repo)
+                # Check if git repo
+                if callnull(["git", "status"]) == 0:
+                    # Run git fetch to update remote status
+                    callnull(["git", "fetch"])
+                    try:
+                        # Get current branch
+                        cur_branch = check_output(["git","rev-parse","--abbrev-ref","HEAD"], stderr=devnull).strip()
+                        try:
+                            # Check if there are commits to be pushed
+                            if int(check_output(["git","rev-list","HEAD...origin/" + cur_branch,"--ignore-submodules","--count"], stderr=devnull)) > 0:
+                                printn("[ " + colr("NEEDS-SYNC", c.W) + " ]")
+                            # No commits to be pushed
+                            else:
+                                printn("[ " + colr("UP-TO-DATE", c.G) + " ]")
+                        # Handle rev-list errors
+                        except CalledProcessError, e:
+                                printn("[ " + colr("NO-REMOTE ", c.F) + " ]")
+                    # Repo is mostly likely new with 0 commits
+                    except CalledProcessError, e:
+                            printn("[ " + colr("FRESH-REPO", c.W) + " ]")
+                # Not a git repo
                 else:
-                    printn("[ " + colr("UP-TO-DATE", c.G) + " ]")
-            # Not a git repo
+                    # Print as error
+                    printn("[ " + colr("NOT-A-REPO", c.F) + " ]")
+                # Print newline
             else:
                 # Print as error
-                printn("[ " + colr("NOT-A-REPO", c.F) + " ]")
-            # Print newline
+                printn("[ " + colr("NOT-A-DIR ", c.F) + " ]")
             print("")
     # If config doesn't exist
     else:
