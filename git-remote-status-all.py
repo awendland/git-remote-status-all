@@ -13,111 +13,54 @@
 from subprocess import call, check_output, CalledProcessError
 import os
 import sys
+import argparse
 
-# Open dev\null io
-devnull = open(os.devnull, 'w')
-# Convenience function for running subprocess.call with all output piped to devnull
-def callnull(arr):
-    return call(arr, stdout=devnull, stderr=devnull)
+from shared.exceptions import Shutdown
 
-# Convenience function for calling print w/o inserting a newline at the end    
-def printn(s):
-    print s,
-
-# Class holding console color codes
-class c:
-    H = '\033[95m'  # HEADER
-    LG = '\033[37m'  # LGRAY
-    B = '\033[94m'  # OK/BLUE
-    G = '\033[92m'  # OK/GREEN
-    W = '\033[93m'  # WARNING/YELLOW
-    F = '\033[91m'  # FAIL/RED
-    E = '\033[0m'   # ENDC/RESET
-
-# Apply a console color to a string    
-def colr(s, cl):
-    return cl + s + c.E;
-
-# Calculate the longest string in a list
-def get_max_len(strings):
-    max_len = 0
-    for s in strings:
-        if len(s) > max_len:
-            max_len = len(s)
-    return max_len
-
-# Standard for printing repo path
-# Prints last three path elements, separated by os.sep
-def pretty_repo(path):
-    return os.sep.join(path.split(os.sep)[-3:])
+# Exit function
+def exit(msg="", code=0):
+    if msg is not None:
+        print(msg)
+    print("")
+    sys.exit(code)
 
 def execute():
-    # Print a newline
-    print("")
-    # Get repos file from script dir
-    repos_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + "repos"
-    # Check if repos file exists
-    if (os.path.isfile(repos_path)):
-        # Read git repo paths from repos file
-        repo_paths = [line.strip() for line in open(repos_path)]
-        # Print number of repos
-        print(" " + str(len(repo_paths)) + " git repositories")
-        # Print a dividing line
-        print(" " + "-" * 40)
-        # Get max length of repo paths and + 2 for padding
-        max_repo_len = get_max_len([pretty_repo(r) for r in repo_paths]) + 2
-        # Loop over git repos
-        for repo in repo_paths:
-            # Print repo name
-            printn(" " + colr(pretty_repo(repo).ljust(max_repo_len, " "), c.LG))
-            # Check if repo is a valid directory
-            if os.path.isdir(repo):
-                # Change working directory to git repo
-                os.chdir(repo)
-                # Check if directory is a git repo
-                if callnull(["git", "status"]) == 0:
-                    # Run git fetch to update remote status
-                    callnull(["git", "fetch"])
-                    try:
-                        # Get current branch
-                        cur_branch = check_output(["git","rev-parse","--abbrev-ref","HEAD"], stderr=devnull).strip()
-                        try:
-                            # Check if there are outstanding commits
-                            if int(check_output(["git","rev-list","HEAD...origin/" + cur_branch,"--ignore-submodules","--count"], stderr=devnull)) > 0:
-                                printn("[ " + colr("NEEDS-SYNC", c.W) + " ]")
-                            # No commits to be pushed
-                            else:
-                                printn("[ " + colr("    OK    ", c.G) + " ]")
-                        # Handle rev-list errors
-                        # Most likely their is no 'origin' set
-                        except CalledProcessError, e:
-                                printn("[ " + colr("MIS-ORIGIN", c.F) + " ]")
-                    # Handle rev-parse errors
-                    # Repo is mostly likely new with 0 commits and thus no HEAD
-                    except CalledProcessError, e:
-                            printn("[ " + colr("FRESH-REPO", c.W) + " ]")
-                # Not a git repo
-                else:
-                    # Print as error
-                    printn("[ " + colr("NOT-A-REPO", c.F) + " ]")
-            # Not a valid directory
-            else:
-                # Print as error
-                printn("[ " + colr("NOT-A-DIR ", c.F) + " ]")
-            # Print a newline
-            print("")
-    # If repos file doesn't exist
+    # Setup Arguments Parser
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(help='(status, list, add, remove)', dest='action')
+    # Add status action
+    parser_status = subparsers.add_parser('status', help='show the sync status of each repo')
+    # Add list action
+    parser_list = subparsers.add_parser('list', help='list the tracked repos')
+    # Add add action
+    parser_add = subparsers.add_parser('add', help='add a folder to the list of repos')
+    parser_add.add_argument('dir', nargs='?', default=os.getcwd(), help='repo directory to add. defaults to current dir.')
+    # Add remove action
+    parser_remove = subparsers.add_parser('remove', help='remove a repo from the tracked list')
+    parser_remove.add_argument('index', type=int, help='index of repo as given by list cmd')
+    # Parse arguments
+    args = parser.parse_args()
+    
+    # Handle commands               
+    if args.action == "status":
+        print("Running bulk status check")
+        import actions.status as status
+        status.run()
+    elif args.action == "list":
+        print("Listing tracked repos")
+    elif args.action == "add":
+        import actions.add as add
+        add.run(args.dir)
+    elif args.action == "remove":
+        print("Removing repo " + args.index)
     else:
-        # Print missing repos error
-        print("No 'repos' file found at '" + path + "'")
-    # Print a newline
+        parser.print_help()
     print("")
 
 if __name__ == '__main__':
     try:
         # Execute main functionality
         execute()
-    # Gracefully handle keyboard interrups
-    except KeyboardInterrupt:
-        print("")
-        sys.exit();
+    # Gracefully handle keyboard interrups, as well as program requests for exit
+    except (KeyboardInterrupt, Shutdown):
+        exit()
