@@ -30,7 +30,7 @@ def get_max_len(strings):
     for s in strings:
         if len(s) > max_len:
             max_len = len(s)
-            return max_len
+    return max_len
         
 ###############
 #   Dynamic   #
