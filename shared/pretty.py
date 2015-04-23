@@ -12,6 +12,7 @@ def print_dl():
 
 # Class holding console color codes
 class c:
+    BACK_LN = '\033[F' # Back to prev line
     H = '\033[95m'  # HEADER
     LG = '\033[37m' # LGRAY
     B = '\033[94m'  # OK/BLUE
@@ -20,8 +21,8 @@ class c:
     F = '\033[91m'  # FAIL/RED
     E = '\033[0m'   # ENDC/RESET
 
-# Apply a console color to a string    
-def colr(s, cl):
+# Apply a console code to a string    
+def ccode(s, cl):
     return cl + s + c.E;
 
 # Calculate the longest string in a list
@@ -42,31 +43,52 @@ def calc_max_repo_len(repos):
     global max_repo_len
     max_repo_len = get_max_len([r.pretty_path() for r in repos]) + 2
 
+count = 0
+def loading(msg = ""):
+    sym = ""
+    global count
+    mod = count % 4
+    if mod == 0:
+        sym = "|"
+    elif mod == 1:
+        sym = "/"
+    elif mod == 2:
+        sym = "-"
+    elif mod == 3:
+        sym = "\\"
+    count += 1
+    print(c.BACK_LN + sym + msg + c.E)
+
 ###############
 # Repo Status #
 ###############
 
 # Print repo name
 def tellp_repo_name(repo):
-    printn(" " + colr(repo.pretty_path().ljust(max_repo_len, " "), c.LG))
+    printn(" " + ccode(repo.pretty_path().ljust(max_repo_len, " "), c.LG))
 
 # Print repo name
 def tellp_repo_status(status, color):
     pad = ( 10 - len(status) ) / 2
-    printn("[ " + colr(" " * pad + status + " " * pad, color) + " ]")
+    printn("[ " + ccode(" " * pad + status + " " * pad, color) + " ]")
     
 ###############
 #   Add Repo  #
 ###############
 
+# Tell user how many folders have been searched
+def tell_folder_search_count(num):
+    # TODO: clear current line and reprint
+    print(ccode(" " + str(num) + " folders searched", c.LG))
+
 # Tell user that the repo path was added
 def tell_repo_added(repo):
-    print(colr(" Repo '" + repo + "' added.", c.LG))
+    print(ccode(" Repo '", c.LG) + ccode(repo, c.G) + ccode("' added.", c.LG))
 
 
 # Tell user that the repo path was added
 def tell_repo_already_tracked(repo):
-    print(colr(" Repo '" + repo.get_path() + "' is already tracked.", c.LG))
+    print(ccode(" Repo '", c.LG) + ccode(repo.get_path(), c.B) + ccode("' is already tracked.", c.LG))
 
 ###############
 # Remove Repo #
@@ -74,7 +96,7 @@ def tell_repo_already_tracked(repo):
 
 # Tell user that the repo path was added
 def tell_repo_removed(repo):
-    print(colr(" Repo '" + repo + "' removed.", c.LG))
+    print(ccode(" Repo '" + repo + "' removed.", c.LG))
 
 ###############
 #  Responses  #

@@ -37,8 +37,6 @@ def get_repos_file(repos_path = None):
         raise Shutdown()
 
 def get_repos(repos_path = None):
-    # Print a newline
-    pretty.print_new_line()
     # Get repos path
     repos_path = get_repos_file(repos_path)
     # Read git repo paths from repos file
@@ -46,8 +44,6 @@ def get_repos(repos_path = None):
     return repos
 
 def add_repo(path, repos_path = None):
-    # Print a newline
-    pretty.print_new_line()
     # Get current repos
     cur_repos = get_repos(repos_path)
     # Check if repo already tracked
