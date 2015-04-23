@@ -34,6 +34,7 @@ def execute():
     parser_list = subparsers.add_parser('list', help='list the tracked repos')
     # Add add action
     parser_add = subparsers.add_parser('add', help='add a folder to the list of repos')
+    parser_add.add_argument("--walk", action="store_const", dest="walk_sub_dirs", const=True, default=False, help="walk sub directories to look for .git folders")
     parser_add.add_argument('dir', nargs='?', default=os.getcwd(), help='repo directory to add. defaults to current dir.')
     # Add remove action
     parser_remove = subparsers.add_parser('remove', help='remove a repo from the tracked list')

@@ -63,6 +63,11 @@ def tellp_repo_status(status, color):
 def tell_repo_added(repo):
     print(colr(" Repo '" + repo + "' added.", c.LG))
 
+
+# Tell user that the repo path was added
+def tell_repo_already_tracked(repo):
+    print(colr(" Repo '" + repo.get_path() + "' is already tracked.", c.LG))
+
 ###############
 #  Responses  #
 ###############

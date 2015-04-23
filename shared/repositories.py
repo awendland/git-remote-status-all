@@ -44,12 +44,26 @@ def get_repos(repos_path = None):
     # Read git repo paths from repos file
     repos = [Repo(line) for line in open(repos_path)]
     return repos
-        
+
 def add_repo(path, repos_path = None):
     # Print a newline
     pretty.print_new_line()
-    # Get repos path
-    repos_path = get_repos_file(repos_path)
+    # Get current repos
+    cur_repos = get_repos(repos_path)
+    # Check if repo already tracked
+    for repo in cur_repos:
+        if os.path.abspath(repo.get_path()) == os.path.abspath(path):
+            pretty.tell_repo_already_tracked(repo)
+            return False
+    # Add new repo
+    cur_repos.append(Repo(path))
+    # Open repos file
+    f = open(get_repos_file(repos_path), 'w+')
+    # Add repo to file
+    f.write("\n".join([repo.get_path() for repo in cur_repos]))
+    # Close repos file
+    f.close()
+    return True
     # Open repos file
     f = open(repos_path, 'a')
     # Add repo to file
