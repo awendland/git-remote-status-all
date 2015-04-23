@@ -30,15 +30,19 @@ def execute():
     subparsers = parser.add_subparsers(help='(status, list, add, remove)', dest='action')
     # Add status action
     parser_status = subparsers.add_parser('status', help='show the sync status of each repo')
+    parser_status.add_argument('repos', nargs='?', default=None, help='location of tracked repos list.')
     # Add list action
     parser_list = subparsers.add_parser('list', help='list the tracked repos')
+    parser_list.add_argument('repos', nargs='?', default=None, help='location of tracked repos list.')
     # Add add action
     parser_add = subparsers.add_parser('add', help='add a folder to the list of repos')
     parser_add.add_argument("--walk", action="store_const", dest="walk_sub_dirs", const=True, default=False, help="walk sub directories to look for .git folders")
     parser_add.add_argument('dir', nargs='?', default=os.getcwd(), help='repo directory to add. defaults to current dir.')
+    parser_add.add_argument('repos', nargs='?', default=None, help='location of tracked repos list.')
     # Add remove action
     parser_remove = subparsers.add_parser('remove', help='remove a repo from the tracked list')
     parser_remove.add_argument('dir', nargs='?', default=os.getcwd(), help='repo directory to remove. defaults to current dir.')
+    parser_remove.add_argument('repos', nargs='?', default=None, help='location of tracked repos list.')
     # Parse arguments
     args = parser.parse_args()
     
@@ -46,9 +50,11 @@ def execute():
     if args.action == "status":
         print("Running bulk status check")
         import actions.status as status
-        status.run()
+        status.run(args.repos)
     elif args.action == "list":
         print("Listing tracked repos")
+        import actions.list as listaction
+        listaction.run(args.repos)
     elif args.action == "add":
         print("Adding new repo to tracking")
         import actions.add as add

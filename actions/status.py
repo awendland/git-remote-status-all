@@ -5,8 +5,8 @@ import shared.pretty as pretty
 from shared.repositories import Repo, get_repos
 from shared.oscmd import devnull, callnull
 
-def run():
-    repos = get_repos()
+def run(repos_path):
+    repos = get_repos(repos_path)
     pretty.tell_num_of_repos(repos)
     pretty.print_dl()
     pretty.calc_max_repo_len(repos)
