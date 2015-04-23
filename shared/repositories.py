@@ -1,4 +1,5 @@
 import os
+from os.path import expanduser
 
 import pretty as pretty
 from exceptions import Shutdown
@@ -23,9 +24,7 @@ class Repo:
 def get_repos_file(repos_path = None):
     # Set default repos_path if none is supplied
     if repos_path is None:
-        repos_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + "repos"
-    # Get repos file from script dirdef load_repos(repos_path):
-    repos_path = os.sep.join(os.path.dirname((os.path.abspath(__file__))).split(os.sep)[:-1]) + os.sep + "repos"
+        repos_path = expanduser("~") + os.sep + ".git-remote-status-repos"
     # Check if repos file exists
     if (os.path.isfile(repos_path)):
         return repos_path
