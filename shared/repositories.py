@@ -64,9 +64,22 @@ def add_repo(path, repos_path = None):
     # Close repos file
     f.close()
     return True
+
+def remove_repo(path, repos_path = None):
+    # Print a newline
+    pretty.print_new_line()
+    # Get repos path if not supplied
+    if not repos_path:
+        repos_path = get_repos_file(repos_path)
     # Open repos file
-    f = open(repos_path, 'a')
+    f = open(repos_path, 'w+')
+    # Var for holding new repo list
+    cleaned_repos = []
+    # Load file to string for manipulation
+    for repo in f:
+        if os.path.abspath(repo) != os.path.abspath(path):
+            cleaned_repos.append(repo)
     # Add repo to file
-    f.write(path)
+    f.write("\n".join(cleaned_repos))
     # Close repos file
     f.close()

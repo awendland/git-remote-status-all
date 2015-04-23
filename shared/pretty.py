@@ -69,6 +69,14 @@ def tell_repo_already_tracked(repo):
     print(colr(" Repo '" + repo.get_path() + "' is already tracked.", c.LG))
 
 ###############
+# Remove Repo #
+###############
+
+# Tell user that the repo path was added
+def tell_repo_removed(repo):
+    print(colr(" Repo '" + repo + "' removed.", c.LG))
+
+###############
 #  Responses  #
 ###############
 

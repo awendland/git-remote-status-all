@@ -38,7 +38,7 @@ def execute():
     parser_add.add_argument('dir', nargs='?', default=os.getcwd(), help='repo directory to add. defaults to current dir.')
     # Add remove action
     parser_remove = subparsers.add_parser('remove', help='remove a repo from the tracked list')
-    parser_remove.add_argument('index', type=int, help='index of repo as given by list cmd')
+    parser_remove.add_argument('dir', nargs='?', default=os.getcwd(), help='repo directory to remove. defaults to current dir.')
     # Parse arguments
     args = parser.parse_args()
     
@@ -50,10 +50,13 @@ def execute():
     elif args.action == "list":
         print("Listing tracked repos")
     elif args.action == "add":
+        print("Adding new repo to tracking")
         import actions.add as add
-        add.run(args.dir)
+        add.run(args.repos, args.dir, args.walk_sub_dirs)
     elif args.action == "remove":
-        print("Removing repo " + args.index)
+        print("Removing repo from tracking")
+        import actions.remove as remove
+        remove.run(args.repos, args.dir)
     else:
         parser.print_help()
     print("")
